@@ -9,6 +9,9 @@ namespace TextProcessingFramework
 {
     public class TextProcessingManager
     {
+        /// <summary>
+        /// This enum represent state of processor registration.
+        /// </summary>
         public enum RegisterState
         {
             SuccessfullyRegistered = 0,
@@ -24,6 +27,12 @@ namespace TextProcessingFramework
 
         internal List<BaseTextProcessor> _processorList = new List<BaseTextProcessor>();
 
+        /// <summary>
+        /// Method, which perform registration processor and its layers.
+        /// Stable, this method guarantees the indexes processors previously recorded.
+        /// </summary>
+        /// <param name="processor">a processor for registration.</param>
+        /// <returns>Registration result state</returns>
         public RegisterState RegisterProcessor(BaseTextProcessor processor)
         {
             int proc_index = 0;
@@ -96,7 +105,9 @@ namespace TextProcessingFramework
             else
                 return RegisterState.AlreadyRegistered;
         }
-
+        /// <summary>
+        /// Get a copy of registered processors list.
+        /// </summary>
         public List<BaseTextProcessor> RegisteredProcessors
         {
             get
@@ -104,7 +115,9 @@ namespace TextProcessingFramework
                 return _processorList.ToList();
             }
         }
-
+        /// <summary>
+        /// Get a copy of registered layers list. 
+        /// </summary>
         public List<String> RegisteredLayers
         {
             get
@@ -117,18 +130,36 @@ namespace TextProcessingFramework
         {
             get { return _processorByOutputLayer.Count; }
         }
-
+        /// <summary>
+        /// Try to get layer index by name.
+        /// </summary>
+        /// <param name="layerName">Layer's name/</param>
+        /// <param name="index">Output value of index. If layer not found index equals to zero.</param>
+        /// <returns>Flag, which represent success of serch.</returns>
         public bool TryGetLayerIndex(String layerName, out int index)
         {
             return _layerNameTable.TryGetValue(layerName, out index);
         }
 
+        //This method need to refactor! And BaseTextProcessor need to change some of it's ideology. 
+        /// <summary>
+        /// Try to get processor index by index of layer.
+        /// </summary>
+        /// <param name="layerIndex">Index of layer.</param>
+        /// <param name="processorIndex">Output value of index. If layer not found index equals to zero.</param>
+        /// <returns>Processor object.</returns>
         public BaseTextProcessor GetProcessorByOutputLayerIndex(int layerIndex, out int processorIndex) //with sync object
         {
             processorIndex = _processorByOutputLayer[layerIndex];
             return _processorList[_processorByOutputLayer[layerIndex]];    
         }
 
+        /// <summary>
+        /// Create instance of TextInfo associated with this Manager.
+        /// </summary>
+        /// <param name="text">Text</param>
+        /// <param name="userData">user defined data</param>
+        /// <returns>Instance of TextInfo class</returns>
         public TextInfo GetTextInfo(String text, Object userData = null)
         {
             return new TextInfo(text, this, userData);
