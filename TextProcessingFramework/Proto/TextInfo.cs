@@ -8,42 +8,75 @@ namespace TextProcessingFramework.Proto
 {
     public class TextInfo
     {
-        Object[] _lockObjects;
+        List<Object> _lockObjects;
 
+        /// <summary>
+        /// Constrictor.
+        /// </summary>
+        /// <param name="text">String, which represent text.</param>
+        /// <param name="manager">Reference to the object manager.</param>
+        /// <param name="userData">Some user's data. By default is null.</param>
         public TextInfo(String text, TextProcessingManager manager, Object userData = null)
         {
             Text = text;
             Manager = manager;
             UserData = userData;
-            _TextLayers = new TextLayer[manager.LayersCount];
-            _lockObjects = new Object[manager._processorList.Count];
-            for (int i = 0; i < manager._processorList.Count; ++i)
-                _lockObjects[i] = new Object();
+            _textLayers = new List<TextLayer>(manager.LayersCount+1);
+
+            _lockObjects = new List<Object>(manager._processorList.Count+1);
+
+            UpdateListsOfLayersAndLocks();
 
         }
 
+        private void UpdateListsOfLayersAndLocks()
+        {
+            for (int i = _textLayers.Count; i < Manager.LayersCount; ++i)
+            {
+                _textLayers.Add(null);
+            }
+            for (int i = _lockObjects.Count; i < Manager._processorList.Count; ++i)
+            {
+                _lockObjects.Add(new Object());
+            }
+        }
+        /// <summary>
+        /// Reference to the object manager.
+        /// </summary>
         public TextProcessingManager Manager
         {
             get;
             internal set;
         }
-
+        /// <summary>
+        /// Some user's data.
+        /// </summary>
         public Object UserData
         {
             get;
             set;
         }
 
-        TextLayer[] _TextLayers;
+        List<TextLayer> _textLayers;
 
+        /// <summary>
+        /// An array of layers.
+        /// </summary>
         public TextLayer[] TextLayers
         {
             get
             {
-                return _TextLayers.ToArray();
+                //Parallel.For(0, _TextLayers.Length, i => GetLayer(i));
+                UpdateListsOfLayersAndLocks();
+                return _textLayers.ToArray();
             }
         }
 
+        /// <summary>
+        /// Get layer by name. 
+        /// </summary>
+        /// <param name="layerName">Name of the layer.</param>
+        /// <returns>Base representation of the layer.</returns>
         public TextLayer GetLayer(String layerName)
         {
             int index = 0;
@@ -51,22 +84,30 @@ namespace TextProcessingFramework.Proto
             return GetLayer(index);
         }
 
+        /// <summary>
+        /// Get layer by index. 
+        /// </summary>
+        /// <param name="layerName">Name of the layer.</param>
+        /// <returns>Base representation of the layer.</returns>
         public TextLayer GetLayer(int layerIndex)
         {
-            if (_TextLayers[layerIndex] == null)
+
+            UpdateListsOfLayersAndLocks();
+
+            if (_textLayers[layerIndex] == null)
             {
                 int lockIndex = 0;
                 BaseTextProcessor processor = Manager.GetProcessorByOutputLayerIndex(layerIndex, out lockIndex);
 
                 lock (_lockObjects[lockIndex])
                 {
-                    if (_TextLayers[layerIndex] == null)
+                    if (_textLayers[layerIndex] == null)
                     {
-
-                        Parallel.ForEach(processor.InputLayerNames, inputName =>
-                        {
-                            GetLayer(inputName);
-                        });
+                        //Some code for optimisation
+                        //Parallel.ForEach(processor.InputLayerNames, inputName =>
+                        //{
+                        //    GetLayer(inputName);
+                        //});
 
                         foreach (TextLayer layer in processor.Process(this))
                         {
@@ -77,7 +118,7 @@ namespace TextProcessingFramework.Proto
                 }
                 
             }
-            return _TextLayers[layerIndex];
+            return _textLayers[layerIndex];
 
         }
 
@@ -85,18 +126,25 @@ namespace TextProcessingFramework.Proto
         {
             int index = 0;
             Manager.TryGetLayerIndex(layer.Name, out index);
-            _TextLayers[index] = layer;
+            _textLayers[index] = layer;
         }
 
         // todo BaseText GetLayer <int> implementation with using BaseTextProcesson.Process
 
-
+        /// <summary>
+        /// Get text string 
+        /// </summary>
         public String Text
         {
             get;
             internal set;
         }
 
+        /// <summary>
+        /// Check layer by name.
+        /// </summary>
+        /// <param name="LayerName">Name of the layer.</param>
+        /// <returns></returns>
         public Boolean ContainsLayer(String LayerName)
         {
             int index = 0;
