@@ -20,9 +20,11 @@ namespace TextProcessingSimpleExample
             MyExampleTextProcessor firstProcessor = new MyExampleTextProcessor();
             MyExampleTextProcessor2 secondProcessor = new MyExampleTextProcessor2();
 
-            if (exampleManager.RegisterProcessor(firstProcessor) !=
+            String registerDetails;
+
+            if (exampleManager.RegisterProcessor(firstProcessor, out registerDetails) !=
                 TextProcessingManager.RegisterState.SuccessfullyRegistered ||
-                exampleManager.RegisterProcessor(secondProcessor) !=
+                exampleManager.RegisterProcessor(secondProcessor, out registerDetails) !=
                 TextProcessingManager.RegisterState.SuccessfullyRegistered)
             {
                 

@@ -19,6 +19,8 @@ namespace TextProcessingFramework.Proto
             Name = name;
             _inputLayers.AddRange(inputLayers);
             _outputLayers.AddRange(outputLayers);
+            if (_outputLayers.Count == 0)
+                throw new InvalidOperationException("Empty output layers collection. Each processor must generate at least one layer!");
         }
 
         List<String> _inputLayers = new List<string>();
